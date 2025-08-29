@@ -1,58 +1,89 @@
 # DIO - Trilha .NET - API e Entity Framework
-www.dio.me
 
-## Desafio de projeto
-Para este desafio, você precisará usar seus conhecimentos adquiridos no módulo de API e Entity Framework, da trilha .NET da DIO.
+[www.dio.me](http://www.dio.me)
 
-## Contexto
-Você precisa construir um sistema gerenciador de tarefas, onde você poderá cadastrar uma lista de tarefas que permitirá organizar melhor a sua rotina.
+## Desafio concluído
 
-Essa lista de tarefas precisa ter um CRUD, ou seja, deverá permitir a você obter os registros, criar, salvar e deletar esses registros.
+Este projeto consiste em um sistema gerenciador de tarefas, construído utilizando **.NET 7** e **Entity Framework Core**, seguindo as práticas recomendadas de Web API. O sistema permite criar, atualizar, obter e deletar tarefas, com dados consistentes no banco e exibidos corretamente na API e Swagger.
 
-A sua aplicação deverá ser do tipo Web API ou MVC, fique a vontade para implementar a solução que achar mais adequado.
+## Funcionalidades implementadas
 
-A sua classe principal, a classe de tarefa, deve ser a seguinte:
+* CRUD completo para tarefas.
+* Data armazenada no banco sem hora (apenas `yyyy-MM-dd`).
+* Status da tarefa armazenado como string (`Pendente` ou `Finalizado`).
+* Endpoints testáveis via Swagger.
+* Migrations criadas e aplicadas para atualização do banco.
+* Atualização de registros antigos para refletir status corretamente.
+
+## Estrutura da Classe Tarefa
+
+A classe principal do sistema possui as seguintes propriedades:
 
 ![Diagrama da classe Tarefa](diagrama.png)
 
-Não se esqueça de gerar a sua migration para atualização no banco de dados.
+## csharp
+public class Tarefa
+{
+    public int Id { get; set; }
+    public string Titulo { get; set; }
+    public string Descricao { get; set; }
+    public DateTime Data { get; set; }
+    public EnumStatusTarefa Status { get; set; }
+}
+```
 
-## Métodos esperados
-É esperado que você crie o seus métodos conforme a seguir:
+## Endpoints Disponíveis
 
+| Verbo  | Endpoint               | Parâmetro | Body          |
+| ------ | ---------------------- | --------- | ------------- |
+| GET    | /Tarefa/{id}           | id        | N/A           |
+| PUT    | /Tarefa/{id}           | id        | Schema Tarefa |
+| DELETE | /Tarefa/{id}           | id        | N/A           |
+| GET    | /Tarefa/ObterTodos     | N/A       | N/A           |
+| GET    | /Tarefa/ObterPorTitulo | titulo    | N/A           |
+| GET    | /Tarefa/ObterPorData   | data      | N/A           |
+| GET    | /Tarefa/ObterPorStatus | status    | N/A           |
+| POST   | /Tarefa                | N/A       | Schema Tarefa |
 
-**Swagger**
-
-
-![Métodos Swagger](swagger.png)
-
-
-**Endpoints**
-
-
-| Verbo  | Endpoint                | Parâmetro | Body          |
-|--------|-------------------------|-----------|---------------|
-| GET    | /Tarefa/{id}            | id        | N/A           |
-| PUT    | /Tarefa/{id}            | id        | Schema Tarefa |
-| DELETE | /Tarefa/{id}            | id        | N/A           |
-| GET    | /Tarefa/ObterTodos      | N/A       | N/A           |
-| GET    | /Tarefa/ObterPorTitulo  | titulo    | N/A           |
-| GET    | /Tarefa/ObterPorData    | data      | N/A           |
-| GET    | /Tarefa/ObterPorStatus  | status    | N/A           |
-| POST   | /Tarefa                 | N/A       | Schema Tarefa |
-
-Esse é o schema (model) de Tarefa, utilizado para passar para os métodos que exigirem
+## Schema de Tarefa
 
 ```json
 {
   "id": 0,
   "titulo": "string",
   "descricao": "string",
-  "data": "2022-06-08T01:31:07.056Z",
+  "data": "2025-08-29",
   "status": "Pendente"
 }
 ```
 
+## Ajustes e Melhorias Implementadas
 
-## Solução
-O código está pela metade, e você deverá dar continuidade obedecendo as regras descritas acima, para que no final, tenhamos um programa funcional. Procure pela palavra comentada "TODO" no código, em seguida, implemente conforme as regras acima.
+1. **Controller Tarefa**: adicionado método `FormatarTarefa` para garantir que a data e o status sejam exibidos corretamente.
+2. **Migrations**:
+
+   * `Inicial` – Criação da tabela `Tarefas`.
+   * `InicialNovaDB` – Inicialização do banco `AgendaTrilhaNet`.
+   * `AjusteDataStatus` – Ajuste das colunas `Data` (tipo `date`) e `Status` (tipo string).
+3. **Atualização de registros antigos**: código aplicado para atualizar status das tarefas já existentes no banco.
+4. **Swagger**: endpoints atualizados para exibir corretamente a data e o status.
+
+## Atualização de registros antigos
+
+Para padronizar os registros existentes:
+
+## csharp
+foreach (var tarefa in context.Tarefas.ToList())
+{
+    if (tarefa.Status.ToString() == "0")
+        tarefa.Status = EnumStatusTarefa.Pendente;
+    else if (tarefa.Status.ToString() == "1")
+        tarefa.Status = EnumStatusTarefa.Finalizado;
+}
+context.SaveChanges();
+```
+
+> Todos os registros antigos passam a exibir status corretamente após execução deste código.
+
+
+
